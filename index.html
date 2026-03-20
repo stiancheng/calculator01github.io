@@ -3,70 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚄 应力放散计算器</title>
+    <title>工务段双工具：应力放散 + 换轨材料计算器</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: "Arial", sans-serif;
+            font-family: "微软雅黑", Arial, sans-serif;
         }
 
         body {
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: #fff;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 上对齐 */
-            overflow: auto; /* 允许页面滚动 */
-            min-height: 100vh; /* 保证页面最少占满整个屏幕 */
+            align-items: flex-start;
+            min-height: 100vh;
         }
 
-        .container {
+        .main-container {
+            width: 100%;
+            max-width: 1200px;
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 1100px;
+            gap: 20px;
+        }
+
+        /* 左侧：应力放散 */
+        .container {
+            flex: 1;
+            min-width: 360px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
-            margin-top: 20px; /* 给顶部留点空间 */
-        }
-
-        .left, .right {
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 20px;
         }
 
         h2 {
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 15px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
             color: #ffcc00;
         }
 
         label {
-            font-size: 16px;
+            font-size: 15px;
             margin-bottom: 5px;
             display: block;
         }
 
         input {
             width: 100%;
-            max-width: 320px;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 10px;
+            margin: 8px 0;
             border: 2px solid #fff;
             border-radius: 8px;
             outline: none;
             transition: 0.3s;
-            font-size: 16px;
+            font-size: 15px;
             text-align: center;
             background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
 
         input:focus {
@@ -76,13 +74,12 @@
 
         button {
             width: 100%;
-            max-width: 320px;
             background: #ffcc00;
             color: #333;
             padding: 12px;
             border: none;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
@@ -95,12 +92,11 @@
 
         .error {
             color: #ff4444;
-            font-size: 14px;
-            margin-top: -8px;
+            font-size: 13px;
         }
 
         .result {
-            font-size: 20px;
+            font-size: 17px;
             font-weight: bold;
             color: #00ffcc;
             margin-top: 15px;
@@ -108,9 +104,8 @@
         }
 
         .details {
-            text-align: left;
             margin-top: 15px;
-            font-size: 16px;
+            font-size: 14px;
             padding: 10px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
@@ -118,139 +113,267 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .result-container {
+        /* 右侧：换轨计算器 */
+        .calc-box {
+            flex: 1;
+            min-width: 360px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .grid-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .grid-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .result-material {
             margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.7;
+            display: none;
         }
 
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            .left, .right {
-                width: 100%;
-                max-width: 100%;
-                margin-bottom: 15px;
-            }
-
-            h2 {
-                font-size: 20px;
-            }
-
-            label, input, button {
-                font-size: 14px;
-                max-width: 100%;
-            }
-
-            button {
-                font-size: 16px;
-            }
+        .total-row {
+            font-weight: bold;
+            color: #ffdd88;
+            font-size: 15px;
         }
 
+        .pad-item {
+            color: #66ddff;
+            font-weight: bold;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
 
+<div class="main-container">
+    <!-- 左侧：应力放散 -->
     <div class="container">
-        <div class="left">
-            <h2>🚄 应力放散计算器</h2>
+        <h2>🚄 应力放散计算器</h2>
+        <label for="lockedTemp">设计锁定轨温 (°C)：</label>
+        <input type="number" id="lockedTemp" placeholder="请输入设计锁定轨温" value="31">
+        <small id="lockedTempWarning" class="error"></small>
 
-            <label for="lockedTemp">设计锁定轨温 (°C)：</label>
-            <input type="number" id="lockedTemp" placeholder="请输入设计锁定轨温"  value="31" >
-            <small id="lockedTempWarning" class="error"></small>
+        <label for="workingTemp">作业中轨温 (°C)：</label>
+        <input type="number" id="workingTemp" placeholder="请输入作业中轨温">
 
-            <label for="workingTemp">作业中轨温 (°C)：</label>
-            <input type="number" id="workingTemp" placeholder="请输入作业中轨温">
+        <label for="trackLength">轨长 (m)：</label>
+        <input type="number" id="trackLength" placeholder="请输入轨长">
 
-            <label for="trackLength">轨长 (m)：</label>
-            <input type="number" id="trackLength" placeholder="请输入轨长">
+        <label for="lockedTrackLength">锁定轨长 (m)：</label>
+        <input type="number" id="lockedTrackLength" placeholder="默认 50" value="50" min="0" max="150">
 
-            <label for="lockedTrackLength">锁定轨长 (m)：</label>
-            <input type="number" id="lockedTrackLength" placeholder="默认 50" value="50" min="0" max="150">
+        <button onclick="calculate()">💡 计算放散量</button>
 
-            <button onclick="calculate()">💡 计算放散量</button>
+        <div id="result" class="result"></div>
+        <div id="details" class="details"></div>
+    </div>
+
+    <!-- 右侧：换轨材料计算器 -->
+    <div class="calc-box">
+        <h2>🛤️ 换轨材料计算器</h2>
+
+        <div class="grid-input">
+            <div class="grid-item">
+                <label>Ⅱ型枕</label>
+                <input type="number" id="type2" value="0" min="0">
+            </div>
+            <div class="grid-item">
+                <label>Ⅱq桥枕</label>
+                <input type="number" id="type2q" value="0" min="0">
+            </div>
+            <div class="grid-item">
+                <label>ⅢA型枕</label>
+                <input type="number" id="type3A" value="0" min="0">
+            </div>
+
+            <div class="grid-item">
+                <label>Ⅲq桥枕</label>
+                <input type="number" id="type3q" value="0" min="0">
+            </div>
+            <div class="grid-item">
+                <label>XⅢ型枕</label>
+                <input type="number" id="typeX3" value="0" min="0">
+            </div>
+            <div class="grid-item">
+                <label>Ⅲb型枕</label>
+                <input type="number" id="type3b" value="0" min="0">
+            </div>
         </div>
 
-        <div class="right">
-            <div class="result-container">
-                <div id="result" class="result"></div>
-                <div id="details" class="details"></div>
+        <button onclick="calculateAll()">🧮 自动计算全部材料</button>
+
+        <div class="result-material" id="result-material">
+            <div class="total-row">总枕木数量：<span id="totalAll"></span> 根</div>
+            <hr>
+            
+            <div class="pad-item" id="show-p2">胶垫 185*149*10mm(Ⅱ型)：<span id="p2"></span> 个</div>
+            <div class="pad-item" id="show-p2q">胶垫 185*149*14mm(Ⅱq)：<span id="p2q"></span> 个</div>
+            <div class="pad-item" id="show-p3A">胶垫 190*149*10mm(ⅢA/XⅢ)：<span id="p3A"></span> 个</div>
+            <div class="pad-item" id="show-p3q">胶垫 190*149*14mm(Ⅲq)：<span id="p3q"></span> 个</div>
+            <div class="pad-item" id="show-p3b">胶垫 192*170*14mm(Ⅲb)：<span id="p3b"></span> 个</div>
+            <hr>
+            
+            <div id="show-normal-tiao">普通弹条：<span id="normalTiao"></span> 个</div>
+            <div id="show-niqiu" style="color:#ff6666; font-weight:bold;">泥鳅弹条(Ⅲb专用)：<span id="niqiuTiao"></span> 个</div>
+            <hr>
+
+            <div id="show-da">大扣板：<span id="da"></span> 个</div>
+            <div id="show-xiao">小扣板：<span id="xiao"></span> 个</div>
+            <div id="show-ping">平垫：<span id="ping"></span> 个</div>
+            <div id="show-luo">螺帽：<span id="luo"></span> 个</div>
+            <div id="show-dang">挡座：<span id="dang"></span> 个</div>
+            <hr>
+            <div id="show-dangSpecial" style="color:#ff6666; font-weight:bold;">
+                Ⅲb专用：大挡座 <span id="dangDa"></span> 个 | 小挡座 <span id="dangXiao"></span> 个
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('lockedTemp').addEventListener('input', function () {
-            const lockedTemp = parseFloat(this.value);
-            const warningText = document.getElementById('lockedTempWarning');
+<script>
+    // 应力放散
+    document.getElementById('lockedTemp').addEventListener('input', function () {
+        const v = parseFloat(this.value);
+        const w = document.getElementById('lockedTempWarning');
+        w.textContent = (!isNaN(v) && (v < 26 || v > 36)) ? "❌ 必须在 26~36°C" : "";
+    });
 
-            if (!isNaN(lockedTemp) && (lockedTemp < 26 || lockedTemp > 36)) {
-                warningText.textContent = "❌ 设计锁定轨温必须在 26°C ~ 36°C 之间！";
-            } else {
-                warningText.textContent = ""; // 清除错误信息
-            }
-        });
+    function calculate() {
+        const lockedTemp = parseFloat(document.getElementById('lockedTemp').value);
+        const workingTemp = parseFloat(document.getElementById('workingTemp').value);
+        const lockedTrackLength = parseFloat(document.getElementById('lockedTrackLength').value);
+        const trackLength = parseFloat(document.getElementById('trackLength').value);
 
-        function calculate() {
-            const lockedTemp = parseFloat(document.getElementById('lockedTemp').value);
-            const workingTemp = parseFloat(document.getElementById('workingTemp').value);
-            const lockedTrackLength = parseFloat(document.getElementById('lockedTrackLength').value);
-            const trackLength = parseFloat(document.getElementById('trackLength').value);
-            const warningText = document.getElementById('lockedTempWarning');
-
-            if (isNaN(lockedTemp) || isNaN(workingTemp) || isNaN(lockedTrackLength) || isNaN(trackLength)) {
-                alert("⚠️ 请输入所有有效数值！");
-                return;
-            }
-
-            if (lockedTemp < 26 || lockedTemp > 36) {
-                warningText.textContent = "❌ 设计锁定轨温必须在 26°C ~ 36°C 之间！";
-                return;
-            }
-
-            const actualTrackLength = trackLength - lockedTrackLength;
-            if (actualTrackLength <= 0) {
-                alert("❌ 计算得到的实际轨长应大于 0，请检查输入值！");
-                return;
-            }
-
-            // 结果显示
-            let resultsHTML = `<strong>🔢 计算结果：</strong><br>`;
-            let breakdownHTML = "<strong>📊 详细计算过程：</strong><br>";
-
-            // 逐段计算
-            for (let i = 100; i <= actualTrackLength; i += 100) {
-                let dissipationAmount = 0.0118 * (lockedTemp - workingTemp) * i;
-                resultsHTML += `📌 ${i}m: <strong>${dissipationAmount.toFixed(2)} mm</strong><br>`;
-                breakdownHTML += `📌 计算公式: 0.0118 × (${lockedTemp} - ${workingTemp}) × ${i} = ${dissipationAmount.toFixed(2)} mm<br>`;
-            }
-
-            if (actualTrackLength % 100 !== 0) {
-                let lastLength = actualTrackLength;
-                let lastDissipationAmount = 0.0118 * (lockedTemp - workingTemp) * lastLength;
-                resultsHTML += `📌 ${lastLength}m (最终点): <strong>${lastDissipationAmount.toFixed(2)} mm</strong><br>`;
-                breakdownHTML += `📌 计算公式: 0.0118 × (${lockedTemp} - ${workingTemp}) × ${lastLength} = ${lastDissipationAmount.toFixed(2)} mm<br>`;
-            }
-
-            // 展示计算结果和详细过程
-            document.getElementById('result').innerHTML = resultsHTML;
-            document.getElementById('details').innerHTML = breakdownHTML;
+        if (isNaN(lockedTemp)||isNaN(workingTemp)||isNaN(lockedTrackLength)||isNaN(trackLength)) {
+            alert("⚠️ 请填写完整"); return;
         }
-    </script>
+        if (lockedTemp<26||lockedTemp>36) { alert("❌ 锁定轨温必须26-36°C"); return; }
+
+        const real = trackLength - lockedTrackLength;
+        if (real <= 0) { alert("❌ 实际轨长必须大于0"); return; }
+
+        let res = `<strong>🔢 计算结果：</strong><br>`;
+        let log = `<strong>📊 计算过程：</strong><br>`;
+
+        for (let i=100; i<=real; i+=100) {
+            let val = 0.0118 * (lockedTemp - workingTemp) * i;
+            res += `📌 ${i}m：${val.toFixed(2)} mm<br>`;
+            log += `0.0118 × (${lockedTemp}-${workingTemp}) × ${i} = ${val.toFixed(2)} mm<br>`;
+        }
+        if (real%100!==0) {
+            let val = 0.0118 * (lockedTemp - workingTemp) * real;
+            res += `📌 ${real}m（终点）：${val.toFixed(2)} mm<br>`;
+            log += `0.0118 × (${lockedTemp}-${workingTemp}) × ${real} = ${val.toFixed(2)} mm<br>`;
+        }
+
+        document.getElementById('result').innerHTML = res;
+        document.getElementById('details').innerHTML = log;
+    }
+
+    // 换轨计算（智能隐藏0数量材料）
+    function calculateAll() {
+        let t2=+document.getElementById('type2').value||0;
+        let t2q=+document.getElementById('type2q').value||0;
+        let t3A=+document.getElementById('type3A').value||0;
+        let t3q=+document.getElementById('type3q').value||0;
+        let tX3=+document.getElementById('typeX3').value||0;
+        let t3b=+document.getElementById('type3b').value||0;
+
+        let total = t2+t2q+t3A+t3q+tX3+t3b;
+        let normal = t2+t2q+t3A+t3q+tX3;
+
+        // 胶垫
+        let pad2 = t2*2;
+        let pad2q = t2q*2;
+        let pad3A = (t3A+tX3)*2;
+        let pad3q = t3q*2;
+        let pad3b = t3b*2;
+
+        // 弹条分开：普通弹条 / 泥鳅弹条
+        let normalTiao = normal * 4;
+        let niqiuTiao = t3b * 4;
+
+        // 通用配件
+        let da = normal*2;
+        let xiao = normal*2;
+        let ping = normal*4;
+        let luo = normal*4;
+        let dang = normal*4;
+
+        // Ⅲb专用
+        let dangDa = t3b*2;
+        let dangXiao = t3b*2;
+
+        // 赋值
+        document.getElementById('totalAll').textContent=total;
+        document.getElementById('p2').textContent=pad2;
+        document.getElementById('p2q').textContent=pad2q;
+        document.getElementById('p3A').textContent=pad3A;
+        document.getElementById('p3q').textContent=pad3q;
+        document.getElementById('p3b').textContent=pad3b;
+        
+        document.getElementById('normalTiao').textContent=normalTiao;
+        document.getElementById('niqiuTiao').textContent=niqiuTiao;
+
+        document.getElementById('da').textContent=da;
+        document.getElementById('xiao').textContent=xiao;
+        document.getElementById('ping').textContent=ping;
+        document.getElementById('luo').textContent=luo;
+        document.getElementById('dang').textContent=dang;
+        document.getElementById('dangDa').textContent=dangDa;
+        document.getElementById('dangXiao').textContent=dangXiao;
+
+        // 智能显示/隐藏（为0则隐藏）
+        function show(id, bool) {
+            document.getElementById(id).style.display = bool ? 'block' : 'none';
+        }
+
+        show('show-p2', pad2>0);
+        show('show-p2q', pad2q>0);
+        show('show-p3A', pad3A>0);
+        show('show-p3q', pad3q>0);
+        show('show-p3b', pad3b>0);
+        
+        show('show-normal-tiao', normalTiao>0);
+        show('show-niqiu', niqiuTiao>0);
+
+        show('show-da', da>0);
+        show('show-xiao', xiao>0);
+        show('show-ping', ping>0);
+        show('show-luo', luo>0);
+        show('show-dang', dang>0);
+        show('show-dangSpecial', dangDa>0 || dangXiao>0);
+
+        document.getElementById('result-material').style.display='block';
+    }
+</script>
 
 </body>
 </html>
